@@ -9,11 +9,20 @@
 //
 // ===----------------------------------------------------------------------===//
 
-public import Kernel_Primitives
-public import Windows_Primitives
+@_exported public import Windows_32_Kernel
+@_exported public import Random_Primitives
 
 /// Re-export Kernel namespace from primitives for use within Windows module.
-public typealias Kernel = Kernel_Primitives.Kernel
+public typealias Kernel = Windows.Kernel
 
-/// Re-export Windows namespace from Windows_Primitives.
-public typealias Windows = Windows_Primitives.Windows
+/// Re-export Windows namespace (flows through Windows_32_Kernel via @_exported Core).
+public typealias Windows = Windows_32_Kernel.Windows
+
+/// Re-export Random namespace from Random_Primitives.
+public typealias Random = Random_Primitives.Random
+
+/// Allow `Windows.Random.fill()` namespace-explicit syntax while sharing the
+/// same underlying type across all platforms.
+extension Windows {
+    public typealias Random = Random_Primitives.Random
+}

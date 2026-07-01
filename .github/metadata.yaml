@@ -1,0 +1,9 @@
+# .github/metadata.yaml
+# Triaged by AI-assisted bulk pass (2026-04-29).
+description: "Type-safe, policy-free wrappers around Windows kernel syscalls for Swift."
+topics:
+  - foundations
+  - windows
+homepage: "https://swift-institute.org"
+readme:
+  family: E

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://swift-institute.org/schemas/research-index-v1.json",
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-04-21",
+  "title": "Research Index — swift-windows",
+  "blurb": "",
+  "scope": "swift-windows (swift-foundations)",
+  "documents": [
+    {
+      "file": "_Package-Insights.md",
+      "displayName": "_Package-Insights.md",
+      "topic": "Windows package insights — no L3 Kernel.File.Flush wrapper (namespace identity + no EINTR)",
+      "date": "2026-04-20",
+      "status": "ACTIVE",
+      "statusDetail": null,
+      "statusRaw": "ACTIVE",
+      "tier": null,
+      "scope": null
+    }
+  ]
+}

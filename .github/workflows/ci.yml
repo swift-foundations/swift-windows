@@ -14,30 +14,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Windows-only package - all code is #if os(Windows)
-  windows-latest:
-    name: Windows (Swift 6.2)
-    runs-on: windows-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v6
+  # Build + test matrix — see swift-foundations/.github/.github/workflows/swift-ci.yml (layer wrapper)
+  ci:
+    uses: swift-foundations/.github/.github/workflows/swift-ci.yml@main
+    secrets: inherit
 
-      - name: Install Swift
-        uses: SwiftyLab/setup-swift@latest
-        with:
-          swift-version: "6.2"
-
-      - name: Print Swift version
-        run: swift --version
-
-      - name: Cache Swift packages
-        uses: actions/cache@v5
-        with:
-          path: .build
-          key: windows-swift62-spm-v3-${{ hashFiles('Package.swift', 'Package@*.swift') }}
-          restore-keys: windows-swift62-spm-v3-
-
-      # Note: swift test builds automatically
-      # Release mode + -gnone works around Swift 6.2.1 Windows compiler crash in debug info verifier
-      - name: Test
-        run: swift test -c release -Xswiftc -gnone
+  # DocC umbrella-catalog pipeline per [DOC-019a] — see
+  # swift-foundations/.github/.github/workflows/swift-docs.yml
+  docs:
+    uses: swift-foundations/.github/.github/workflows/swift-docs.yml@main
+    secrets: inherit
