@@ -101,6 +101,7 @@ let package = Package(
         .target(
             name: "Windows Kernel Socket",
             dependencies: [
+                "Windows Kernel",
                 "Windows Kernel Descriptor",
                 .product(name: "Windows 32 Kernel Socket", package: "swift-windows-standard"),
             ]
@@ -129,6 +130,7 @@ let package = Package(
         .target(
             name: "Windows Kernel File",
             dependencies: [
+                "Windows Kernel",
                 .product(name: "Windows 32 Kernel File", package: "swift-windows-standard"),
             ]
         ),
@@ -145,6 +147,7 @@ let package = Package(
         .target(
             name: "Windows Kernel Thread",
             dependencies: [
+                "Windows Kernel",
                 .product(name: "Windows 32 Kernel", package: "swift-windows-standard"),
                 .product(name: "Windows 32 Kernel Thread", package: "swift-windows-standard"),
                 .product(name: "Windows 32 Kernel System", package: "swift-windows-standard"),
@@ -171,6 +174,7 @@ let package = Package(
         .target(
             name: "Windows Kernel Process",
             dependencies: [
+                "Windows Kernel",
                 .product(name: "Windows 32 Kernel Process", package: "swift-windows-standard"),
             ]
         ),

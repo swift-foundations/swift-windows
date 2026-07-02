@@ -10,6 +10,7 @@
 // ===----------------------------------------------------------------------===//
 
 #if os(Windows)
+public import Windows_Kernel
 public import Windows_32_Kernel_Socket
 
 extension Windows.Kernel {

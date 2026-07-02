@@ -20,6 +20,7 @@
 // swift-posix typealiases to ISO_9945.Kernel.Process).
 
 #if os(Windows)
+public import Windows_Kernel
 public import Windows_32_Kernel_Process
 
 extension Windows.Kernel {

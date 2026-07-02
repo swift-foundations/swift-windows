@@ -27,6 +27,7 @@
 // | L3-unifier swift-kernel | `Kernel.File = Windows.Kernel.File` (on Windows) | Cross-platform name resolves via L3-policy |
 
 #if os(Windows)
+public import Windows_Kernel
 public import Windows_32_Kernel_File
 
 extension Windows.Kernel {

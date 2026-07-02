@@ -29,6 +29,7 @@
 //    principal Q2 disposition (per-domain targets, NOT flat-umbrella).
 
 #if os(Windows)
+public import Windows_Kernel
 public import Windows_32_Kernel
 public import System_Primitives
 public import Error_Primitives

@@ -30,6 +30,7 @@
 // not at L2.
 
 #if os(Windows)
+public import Windows_Kernel
 public import Windows_32_Kernel
 
 extension Windows.Kernel {
