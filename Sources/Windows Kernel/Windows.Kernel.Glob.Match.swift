@@ -374,7 +374,7 @@ extension Glob {
     ) throws(Error) -> [DirectoryEntry] {
         let searchPath = windowsPath(path) + "\\*"
 
-        let opened: (Windows.`32`.Kernel.File.Find.Handle, Windows.`32`.Kernel.File.Find.Entry)
+        let opened: Windows.`32`.Kernel.File.Find.First
         do throws(Windows.`32`.Kernel.File.Find.Error) {
             opened = try Windows.`32`.Kernel.File.Find.first(path: searchPath)
         } catch {
@@ -384,8 +384,8 @@ extension Glob {
             throw mapFindError(error, path: path)
         }
 
-        var handle = opened.0
-        let firstEntry = opened.1
+        let firstEntry = opened.entry
+        var handle = opened.handle
         var entries: [DirectoryEntry] = []
 
         if firstEntry.name != "." && firstEntry.name != ".." {
