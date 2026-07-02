@@ -10,6 +10,7 @@
 // ===----------------------------------------------------------------------===//
 
 @_exported public import Windows_32_Kernel
+@_exported public import Windows_Kernel_Descriptor
 @_exported public import Random_Primitives
 
 /// Re-export Kernel namespace from primitives for use within Windows module.
