@@ -145,6 +145,7 @@ let package = Package(
         .target(
             name: "Windows Kernel Thread",
             dependencies: [
+                .product(name: "Windows 32 Kernel", package: "swift-windows-standard"),
                 .product(name: "Windows 32 Kernel Thread", package: "swift-windows-standard"),
                 .product(name: "Windows 32 Kernel System", package: "swift-windows-standard"),
                 .product(name: "System Primitives", package: "swift-system-primitives"),
