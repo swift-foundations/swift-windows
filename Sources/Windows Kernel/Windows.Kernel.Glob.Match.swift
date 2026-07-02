@@ -384,8 +384,8 @@ extension Glob {
             throw mapFindError(error, path: path)
         }
 
-        let firstEntry = opened.entry
-        var handle = opened.handle
+        var handle = opened.first
+        let firstEntry = opened.second
         var entries: [DirectoryEntry] = []
 
         if firstEntry.name != "." && firstEntry.name != ".." {
