@@ -23,7 +23,7 @@ Type-safe, policy-free wrappers around Windows kernel syscalls for Swift. Provid
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/coenttb/swift-windows.git", from: "0.1.0")
+    .package(url: "https://github.com/swift-foundations/swift-windows.git", from: "0.1.0")
 ]
 ```
 
@@ -103,7 +103,7 @@ This package provides Windows-specific IOCP APIs. For cross-platform kernel prim
 
 ### Used By
 
-- [swift-io](https://github.com/coenttb/swift-io): Async I/O executor built on kernel primitives
+- [swift-io](https://github.com/swift-foundations/swift-io): Async I/O executor built on kernel primitives
 
 ---
 
