@@ -14,10 +14,9 @@
 import WinSDK
 import Testing
 
-import Clock_Primitives
 @testable import Windows_Kernel
 
-extension Windows.Kernel.Glob {
+extension Glob {
     enum Test {
         @Suite struct Unit {}
         @Suite struct EdgeCase {}
@@ -108,14 +107,14 @@ private func withTestDirectory(
     var tempPathBuffer = [WCHAR](repeating: 0, count: Int(MAX_PATH) + 1)
     let tempPathLen = GetTempPathW(DWORD(tempPathBuffer.count), &tempPathBuffer)
     guard tempPathLen > 0 else {
-        throw Kernel.Glob.Error.io(path: "temp", category: .other)
+        throw Glob.Error.io(path: "temp", category: .other)
     }
     let tempPath = stringFromWideChars(tempPathBuffer, maxLength: Int(tempPathLen))
 
     // Create unique directory name using process ID and monotonic time
-    let pid = Kernel.Process.ID.current.rawValue
-    let nanos = Clock.Continuous.now.nanoseconds
-    let testDir = tempPath + "glob-test-\(pid)-\(nanos)"
+    let pid = GetCurrentProcessId()
+    let ticks = GetTickCount64()
+    let testDir = tempPath + "glob-test-\(pid)-\(ticks)"
     let winTestDir = testDir.replacing("/", with: "\\")
 
     // Create directory
@@ -123,7 +122,7 @@ private func withTestDirectory(
         CreateDirectoryW(wpath, nil)
     }
     guard created else {
-        throw Kernel.Glob.Error.io(path: testDir, category: .other)
+        throw Glob.Error.io(path: testDir, category: .other)
     }
 
     defer {
@@ -180,14 +179,14 @@ private func createTestFiles(in directory: String) throws {
 
 // MARK: - Basic Match Tests
 
-extension Windows.Kernel.Glob.Test.Unit {
+extension Glob.Test.Unit {
     @Test
     func `Match simple wildcard pattern`() throws {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("*.txt")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("*.txt")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count == 2)
             #expect(results.contains(dir + "/file1.txt"))
@@ -200,8 +199,8 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("file?.txt")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("file?.txt")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count == 2)
             #expect(results.contains(dir + "/file1.txt"))
@@ -214,8 +213,8 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("file1.txt")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("file1.txt")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count == 1)
             #expect(results.contains(dir + "/file1.txt"))
@@ -227,8 +226,8 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("src/*.swift")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("src/*.swift")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count == 3)
             #expect(results.contains(dir + "/src/main.swift"))
@@ -242,8 +241,8 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("*.xyz")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("*.xyz")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.isEmpty)
         }
@@ -252,14 +251,14 @@ extension Windows.Kernel.Glob.Test.Unit {
 
 // MARK: - Double Star Tests
 
-extension Windows.Kernel.Glob.Test.Unit {
+extension Glob.Test.Unit {
     @Test
     func `Match double star recursive`() throws {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("**/*.swift")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("**/*.swift")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count == 3)
             #expect(results.contains(dir + "/src/main.swift"))
@@ -273,8 +272,8 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("**/*.md")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("**/*.md")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count == 3)
             #expect(results.contains(dir + "/file3.md"))
@@ -286,14 +285,14 @@ extension Windows.Kernel.Glob.Test.Unit {
 
 // MARK: - Character Class Tests
 
-extension Windows.Kernel.Glob.Test.Unit {
+extension Glob.Test.Unit {
     @Test
     func `Match character class`() throws {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("file[12].txt")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("file[12].txt")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count == 2)
             #expect(results.contains(dir + "/file1.txt"))
@@ -304,15 +303,15 @@ extension Windows.Kernel.Glob.Test.Unit {
 
 // MARK: - Options Tests
 
-extension Windows.Kernel.Glob.Test.Unit {
+extension Glob.Test.Unit {
     @Test
     func `Dotfiles explicit policy excludes hidden files`() throws {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("*.txt")
-            let options = Kernel.Glob.Options(dotfiles: .explicit)
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir, options: options)
+            let pattern = try Glob.Pattern("*.txt")
+            let options = Glob.Options(dotfiles: .explicit)
+            let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
             #expect(results.count == 2)
             #expect(!results.contains(dir + "/.hidden.txt"))
@@ -324,9 +323,9 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("*.txt")
-            let options = Kernel.Glob.Options(dotfiles: .always)
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir, options: options)
+            let pattern = try Glob.Pattern("*.txt")
+            let options = Glob.Options(dotfiles: .always)
+            let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
             #expect(results.count == 3)
             #expect(results.contains(dir + "/.hidden.txt"))
@@ -338,9 +337,9 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern(".*")
-            let options = Kernel.Glob.Options(dotfiles: .never)
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir, options: options)
+            let pattern = try Glob.Pattern(".*")
+            let options = Glob.Options(dotfiles: .never)
+            let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
             #expect(results.isEmpty)
         }
@@ -351,9 +350,9 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern(".*.txt")
-            let options = Kernel.Glob.Options(dotfiles: .explicit)
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir, options: options)
+            let pattern = try Glob.Pattern(".*.txt")
+            let options = Glob.Options(dotfiles: .explicit)
+            let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
             #expect(results.count == 1)
             #expect(results.contains(dir + "/.hidden.txt"))
@@ -365,9 +364,9 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("*.txt")
-            let options = Kernel.Glob.Options(ordering: .deterministic)
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir, options: options)
+            let pattern = try Glob.Pattern("*.txt")
+            let options = Glob.Options(ordering: .deterministic)
+            let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
             #expect(results == results.sorted())
         }
@@ -394,9 +393,9 @@ extension Windows.Kernel.Glob.Test.Unit {
                 CloseHandle(handle)
             }
 
-            let pattern = try Kernel.Glob.Pattern("*.txt")
-            let options = Kernel.Glob.Options(caseInsensitive: true)
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir, options: options)
+            let pattern = try Glob.Pattern("*.txt")
+            let options = Glob.Options(caseInsensitive: true)
+            let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
             #expect(results.contains(upperPath))
         }
@@ -405,15 +404,15 @@ extension Windows.Kernel.Glob.Test.Unit {
 
 // MARK: - Include/Exclude Tests
 
-extension Windows.Kernel.Glob.Test.Unit {
+extension Glob.Test.Unit {
     @Test
     func `Match with exclusion pattern`() throws {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let include = [try Kernel.Glob.Pattern("*.txt")]
-            let exclude = [try Kernel.Glob.Pattern("file1.txt")]
-            let results = try Windows.Kernel.Glob.match(
+            let include = [try Glob.Pattern("*.txt")]
+            let exclude = [try Glob.Pattern("file1.txt")]
+            let results = try Glob.match(
                 include: include,
                 excluding: exclude,
                 in: dir
@@ -431,10 +430,10 @@ extension Windows.Kernel.Glob.Test.Unit {
             try createTestFiles(in: dir)
 
             let include = [
-                try Kernel.Glob.Pattern("*.txt"),
-                try Kernel.Glob.Pattern("*.md")
+                try Glob.Pattern("*.txt"),
+                try Glob.Pattern("*.md")
             ]
-            let results = try Windows.Kernel.Glob.match(include: include, in: dir)
+            let results = try Glob.match(include: include, in: dir)
 
             #expect(results.count == 3)
             #expect(results.contains(dir + "/file1.txt"))
@@ -446,13 +445,13 @@ extension Windows.Kernel.Glob.Test.Unit {
 
 // MARK: - Error Tests
 
-extension Windows.Kernel.Glob.Test.Unit {
+extension Glob.Test.Unit {
     @Test
     func `Match non-existent directory throws notFound`() throws {
-        let pattern = try Kernel.Glob.Pattern("*.txt")
+        let pattern = try Glob.Pattern("*.txt")
 
-        #expect(throws: Kernel.Glob.Error.self) {
-            _ = try Windows.Kernel.Glob.match(
+        #expect(throws: Glob.Error.self) {
+            _ = try Glob.match(
                 pattern: pattern,
                 in: "C:/nonexistent/path/that/does/not/exist"
             )
@@ -464,11 +463,11 @@ extension Windows.Kernel.Glob.Test.Unit {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("**/*.txt")
-            let options = Kernel.Glob.Options(onError: .skip)
+            let pattern = try Glob.Pattern("**/*.txt")
+            let options = Glob.Options(onError: .skip)
 
             // Should not throw, gracefully handles any errors
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir, options: options)
+            let results = try Glob.match(pattern: pattern, in: dir, options: options)
             #expect(results.count >= 2)
         }
     }
@@ -476,12 +475,12 @@ extension Windows.Kernel.Glob.Test.Unit {
 
 // MARK: - Edge Cases
 
-extension Windows.Kernel.Glob.Test.EdgeCase {
+extension Glob.Test.EdgeCase {
     @Test
     func `Match empty pattern`() throws {
         try withTestDirectory { dir in
-            let pattern = try Kernel.Glob.Pattern("")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count == 1)
         }
@@ -492,8 +491,8 @@ extension Windows.Kernel.Glob.Test.EdgeCase {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("*")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("*")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             #expect(results.count >= 4)
         }
@@ -502,14 +501,14 @@ extension Windows.Kernel.Glob.Test.EdgeCase {
 
 // MARK: - Windows-Specific Tests
 
-extension Windows.Kernel.Glob.Test.Unit {
+extension Glob.Test.Unit {
     @Test
     func `Path normalization outputs forward slashes`() throws {
         try withTestDirectory { dir in
             try createTestFiles(in: dir)
 
-            let pattern = try Kernel.Glob.Pattern("*.txt")
-            let results = try Windows.Kernel.Glob.match(pattern: pattern, in: dir)
+            let pattern = try Glob.Pattern("*.txt")
+            let results = try Glob.match(pattern: pattern, in: dir)
 
             // All paths should use forward slashes
             for path in results {
