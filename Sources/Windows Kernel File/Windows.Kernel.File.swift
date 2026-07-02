@@ -28,7 +28,7 @@
 
 #if os(Windows)
 public import Windows_Kernel
-public import Windows_32_Kernel_File
+@_exported public import Windows_32_Kernel_File
 
 extension Windows.Kernel {
     /// Windows file namespace — typealias to the L2-canonical

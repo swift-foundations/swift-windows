@@ -31,7 +31,7 @@
 
 #if os(Windows)
 public import Windows_Kernel
-public import Windows_32_Kernel
+@_exported public import Windows_32_Kernel
 
 extension Windows.Kernel {
     /// Windows thread namespace — typealias to the L2-canonical

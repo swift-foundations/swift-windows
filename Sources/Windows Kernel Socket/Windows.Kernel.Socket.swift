@@ -11,7 +11,7 @@
 
 #if os(Windows)
 public import Windows_Kernel
-public import Windows_32_Kernel_Socket
+@_exported public import Windows_32_Kernel_Socket
 
 extension Windows.Kernel {
     /// Policy-aware Windows socket namespace.

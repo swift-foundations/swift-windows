@@ -21,7 +21,7 @@
 
 #if os(Windows)
 public import Windows_Kernel
-public import Windows_32_Kernel_Process
+@_exported public import Windows_32_Kernel_Process
 
 extension Windows.Kernel {
     /// Windows process operations namespace — typealias to the
