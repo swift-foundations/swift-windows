@@ -11,7 +11,7 @@
 
 #if os(Windows)
 
-internal import Glob_Primitives
+public import Glob_Primitives
 internal import Windows_32_Kernel_File
 
 // MARK: - Windows Glob Implementation (extends Glob)
@@ -36,7 +36,7 @@ extension Glob {
     /// Streams results directly — no intermediate collection. Each matched
     /// path is yielded as it is found during directory traversal.
     public static func match(
-        pattern: Pattern,
+        pattern: Glob.Pattern,
         in directory: borrowing Path.Borrowed,
         options: Options = .init(),
         body: (Swift.String) -> Void
@@ -104,7 +104,7 @@ extension Glob {
 
     /// Convenience: matches files using a glob pattern, returning collected results.
     public static func match(
-        pattern: Pattern,
+        pattern: Glob.Pattern,
         in directory: borrowing Path.Borrowed,
         options: Options = .init()
     ) throws(Error) -> [Swift.String] {
