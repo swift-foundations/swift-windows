@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows wall-clock instant type — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Time`.
-    public typealias Time = Windows.`32`.Kernel.Time
-}
+    extension Windows.Kernel {
+        /// Windows wall-clock instant type — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Time`.
+        public typealias Time = Windows.`32`.Kernel.Time
+    }
 #endif

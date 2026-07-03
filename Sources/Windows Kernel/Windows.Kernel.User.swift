@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows user identity namespace (uid synthesis) — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.User`.
-    public typealias User = Windows.`32`.Kernel.User
-}
+    extension Windows.Kernel {
+        /// Windows user identity namespace (uid synthesis) — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.User`.
+        public typealias User = Windows.`32`.Kernel.User
+    }
 #endif

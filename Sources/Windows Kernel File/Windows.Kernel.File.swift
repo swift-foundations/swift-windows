@@ -27,18 +27,18 @@
 // | L3-unifier swift-kernel | `Kernel.File = Windows.Kernel.File` (on Windows) | Cross-platform name resolves via L3-policy |
 
 #if os(Windows)
-public import Windows_Kernel
-@_exported public import Windows_32_Kernel_File
+    public import Windows_Kernel
+    @_exported public import Windows_32_Kernel_File
 
-extension Windows.Kernel {
-    /// Windows file namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.File` per [PLAT-ARCH-005] revised.
-    ///
-    /// Nested types (`Offset`, `Size`, `Delta`, `Open`, `Seek`, `Move`,
-    /// `Stats`, `Flush`, `Find`, `Copy`, `Delete`, `Rename`, `Attributes`,
-    /// `Times`) resolve through the typealias to their L2 canonical
-    /// declarations.
-    public typealias File = Windows.`32`.Kernel.File
-}
+    extension Windows.Kernel {
+        /// Windows file namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.File` per [PLAT-ARCH-005] revised.
+        ///
+        /// Nested types (`Offset`, `Size`, `Delta`, `Open`, `Seek`, `Move`,
+        /// `Stats`, `Flush`, `Find`, `Copy`, `Delete`, `Rename`, `Attributes`,
+        /// `Times`) resolve through the typealias to their L2 canonical
+        /// declarations.
+        public typealias File = Windows.`32`.Kernel.File
+    }
 
 #endif

@@ -9,9 +9,9 @@
 //
 // ===----------------------------------------------------------------------===//
 
+@_exported public import Random_Primitives
 @_exported public import Windows_32_Kernel
 @_exported public import Windows_Kernel_Descriptor
-@_exported public import Random_Primitives
 
 /// Cross-module `Kernel` spelling for this package: aliases the L3-policy
 /// `Windows.Kernel` enum (declared in the Descriptor target's

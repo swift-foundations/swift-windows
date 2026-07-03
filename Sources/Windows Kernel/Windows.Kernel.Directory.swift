@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows directory operations namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Directory`.
-    public typealias Directory = Windows.`32`.Kernel.Directory
-}
+    extension Windows.Kernel {
+        /// Windows directory operations namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Directory`.
+        public typealias Directory = Windows.`32`.Kernel.Directory
+    }
 #endif

@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows file serial number (NTFS FileId) — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Inode`.
-    public typealias Inode = Windows.`32`.Kernel.Inode
-}
+    extension Windows.Kernel {
+        /// Windows file serial number (NTFS FileId) — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Inode`.
+        public typealias Inode = Windows.`32`.Kernel.Inode
+    }
 #endif

@@ -19,16 +19,16 @@
 // swift-posix typealiases to ISO_9945.Kernel.Pipe).
 
 #if os(Windows)
-public import Windows_Kernel
-public import Windows_32_Kernel_File
+    public import Windows_Kernel
+    public import Windows_32_Kernel_File
 
-extension Windows.Kernel {
-    /// Windows anonymous-pipe namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Pipe` per [PLAT-ARCH-005] revised.
-    ///
-    /// Nested types (``Descriptors``, ``Error``, the ``pipe()`` factory)
-    /// resolve through the typealias to their L2 canonical declarations.
-    public typealias Pipe = Windows.`32`.Kernel.Pipe
-}
+    extension Windows.Kernel {
+        /// Windows anonymous-pipe namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Pipe` per [PLAT-ARCH-005] revised.
+        ///
+        /// Nested types (``Descriptors``, ``Error``, the ``pipe()`` factory)
+        /// resolve through the typealias to their L2 canonical declarations.
+        public typealias Pipe = Windows.`32`.Kernel.Pipe
+    }
 
 #endif

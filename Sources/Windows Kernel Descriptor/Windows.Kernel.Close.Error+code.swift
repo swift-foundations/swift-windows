@@ -14,21 +14,21 @@ public import Windows_32_Kernel  // Windows.`32`.Kernel.IO.Error(code:) + Error_
 
 #if os(Windows)
 
-// MARK: - Windows Error Code Mapping
+    // MARK: - Windows Error Code Mapping
 
-extension Windows.Kernel.Close.Error {
-    /// Creates an error from a Windows error code.
-    @inlinable
-    public init(code: Error_Primitives.Error.Code) {
-        if let e = Windows.`32`.Kernel.Descriptor.Validity.Error(code: code) {
-            self = .handle(e)
-            return
+    extension Windows.Kernel.Close.Error {
+        /// Creates an error from a Windows error code.
+        @inlinable
+        public init(code: Error_Primitives.Error.Code) {
+            if let e = Windows.`32`.Kernel.Descriptor.Validity.Error(code: code) {
+                self = .handle(e)
+                return
+            }
+            if let e = Windows.`32`.Kernel.IO.Error(code: code) {
+                self = .io(e)
+                return
+            }
+            self = .platform(Error_Primitives.Error(code: code))
         }
-        if let e = Windows.`32`.Kernel.IO.Error(code: code) {
-            self = .io(e)
-            return
-        }
-        self = .platform(Error_Primitives.Error(code: code))
     }
-}
 #endif

@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows file-lock operations namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Lock`.
-    public typealias Lock = Windows.`32`.Kernel.Lock
-}
+    extension Windows.Kernel {
+        /// Windows file-lock operations namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Lock`.
+        public typealias Lock = Windows.`32`.Kernel.Lock
+    }
 #endif

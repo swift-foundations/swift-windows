@@ -29,53 +29,54 @@
 //    principal Q2 disposition (per-domain targets, NOT flat-umbrella).
 
 #if os(Windows)
-public import Windows_Kernel
-public import Windows_32_Kernel
-public import System_Primitives
-public import Error_Primitives
+    public import Windows_Kernel
+    public import Windows_32_Kernel
+    public import System_Primitives
+    public import Error_Primitives
 
-extension Windows.Kernel.Thread.Affinity {
-    /// Applies affinity to the current thread via `SetThreadAffinityMask`.
-    ///
-    /// ## Implementation
-    /// - `.any`: No-op, returns immediately
-    /// - `.cores(set)`: Delegates to L2 `Windows.\`32\`.Kernel.Thread.Affinity.setMask(cores:)`
-    /// - `.numaNode(id)`: Resolves node to CPUs via
-    ///   `System.Topology.NUMA.discover()` (provided by the
-    ///   `Windows 32 Kernel System` target's
-    ///   `System.Topology.NUMA.Discover.swift`), then delegates to L2.
-    ///
-    /// ## Processor Groups
-    /// Windows supports >64 CPUs via processor groups. The L2 wrapper currently
-    /// supports single-group systems (CPUs 0-63). For multi-group support,
-    /// `SetThreadGroupAffinity` would be needed.
-    ///
-    /// ## Errors
-    /// - `.platform(code)`: SetThreadAffinityMask failed
-    /// - `.invalidNode(id)`: NUMA node not found in topology
-    /// - `.tooManyCPUs`: CPU set exceeds single group capacity (>64)
-    ///
-    /// - Parameter affinity: The affinity specification.
-    /// - Throws: `Windows.Kernel.Thread.Affinity.Error` on failure.
-    public static func apply(
-        _ affinity: Windows.Kernel.Thread.Affinity
-    ) throws(Windows.Kernel.Thread.Affinity.Error) {
-        switch affinity.kind {
-        case .any:
-            return
+    extension Windows.Kernel.Thread.Affinity {
+        /// Applies affinity to the current thread via `SetThreadAffinityMask`.
+        ///
+        /// ## Implementation
+        /// - `.any`: No-op, returns immediately
+        /// - `.cores(set)`: Delegates to L2 `Windows.\`32\`.Kernel.Thread.Affinity.setMask(cores:)`
+        /// - `.numaNode(id)`: Resolves node to CPUs via
+        ///   `System.Topology.NUMA.discover()` (provided by the
+        ///   `Windows 32 Kernel System` target's
+        ///   `System.Topology.NUMA.Discover.swift`), then delegates to L2.
+        ///
+        /// ## Processor Groups
+        /// Windows supports >64 CPUs via processor groups. The L2 wrapper currently
+        /// supports single-group systems (CPUs 0-63). For multi-group support,
+        /// `SetThreadGroupAffinity` would be needed.
+        ///
+        /// ## Errors
+        /// - `.platform(code)`: SetThreadAffinityMask failed
+        /// - `.invalidNode(id)`: NUMA node not found in topology
+        /// - `.tooManyCPUs`: CPU set exceeds single group capacity (>64)
+        ///
+        /// - Parameter affinity: The affinity specification.
+        /// - Throws: `Windows.Kernel.Thread.Affinity.Error` on failure.
+        public static func apply(
+            _ affinity: Windows.Kernel.Thread.Affinity
+        ) throws(Self.Error) {
+            switch affinity.kind {
+            case .any:
+                return
 
-        case .cores(let cores):
-            try Windows.`32`.Kernel.Thread.Affinity.setMask(cores: cores)
+            case .cores(let cores):
+                try Windows.`32`.Kernel.Thread.Affinity.setMask(cores: cores)
 
-        case .numaNode(let nodeID):
-            let numa = System.Topology.NUMA.discover()
-            guard case .nonUniform(let nodes) = numa,
-                  let node = nodes.first(where: { $0.id == nodeID }) else {
-                throw .invalidNode(nodeID)
+            case .numaNode(let nodeID):
+                let numa = System.Topology.NUMA.discover()
+                guard case .nonUniform(let nodes) = numa,
+                    let node = nodes.first(where: { $0.id == nodeID })
+                else {
+                    throw .invalidNode(nodeID)
+                }
+                try Windows.`32`.Kernel.Thread.Affinity.setMask(cores: node.cpus)
             }
-            try Windows.`32`.Kernel.Thread.Affinity.setMask(cores: node.cpus)
         }
     }
-}
 
 #endif

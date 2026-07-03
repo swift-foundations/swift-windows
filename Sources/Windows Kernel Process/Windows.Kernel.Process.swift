@@ -20,17 +20,17 @@
 // swift-posix typealiases to ISO_9945.Kernel.Process).
 
 #if os(Windows)
-public import Windows_Kernel
-@_exported public import Windows_32_Kernel_Process
+    public import Windows_Kernel
+    @_exported public import Windows_32_Kernel_Process
 
-extension Windows.Kernel {
-    /// Windows process operations namespace — typealias to the
-    /// L2-canonical `Windows.\`32\`.Kernel.Process` per [PLAT-ARCH-005]
-    /// revised.
-    ///
-    /// Nested types (``Spawn``, ``Spawn/Actions``, ``Spawn/Result``,
-    /// ``Error``, ``Exit``) resolve through the typealias to their L2
-    /// canonical declarations.
-    public typealias Process = Windows.`32`.Kernel.Process
-}
+    extension Windows.Kernel {
+        /// Windows process operations namespace — typealias to the
+        /// L2-canonical `Windows.\`32\`.Kernel.Process` per [PLAT-ARCH-005]
+        /// revised.
+        ///
+        /// Nested types (``Spawn``, ``Spawn/Actions``, ``Spawn/Result``,
+        /// ``Error``, ``Exit``) resolve through the typealias to their L2
+        /// canonical declarations.
+        public typealias Process = Windows.`32`.Kernel.Process
+    }
 #endif

@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows I/O operations namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.IO`.
-    public typealias IO = Windows.`32`.Kernel.IO
-}
+    extension Windows.Kernel {
+        /// Windows I/O operations namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.IO`.
+        public typealias IO = Windows.`32`.Kernel.IO
+    }
 #endif

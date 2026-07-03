@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows group identity namespace (gid synthesis) — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Group`.
-    public typealias Group = Windows.`32`.Kernel.Group
-}
+    extension Windows.Kernel {
+        /// Windows group identity namespace (gid synthesis) — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Group`.
+        public typealias Group = Windows.`32`.Kernel.Group
+    }
 #endif

@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows volume serial number — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Device`.
-    public typealias Device = Windows.`32`.Kernel.Device
-}
+    extension Windows.Kernel {
+        /// Windows volume serial number — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Device`.
+        public typealias Device = Windows.`32`.Kernel.Device
+    }
 #endif

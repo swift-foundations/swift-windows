@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows storage-error domain namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Storage`.
-    public typealias Storage = Windows.`32`.Kernel.Storage
-}
+    extension Windows.Kernel {
+        /// Windows storage-error domain namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Storage`.
+        public typealias Storage = Windows.`32`.Kernel.Storage
+    }
 #endif

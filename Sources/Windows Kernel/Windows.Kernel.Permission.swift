@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows permission-error domain namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Permission`.
-    public typealias Permission = Windows.`32`.Kernel.Permission
-}
+    extension Windows.Kernel {
+        /// Windows permission-error domain namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Permission`.
+        public typealias Permission = Windows.`32`.Kernel.Permission
+    }
 #endif

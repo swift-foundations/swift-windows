@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows environment-variable namespace — typealias to the
-    /// L2-canonical `Windows.\`32\`.Kernel.Environment`.
-    public typealias Environment = Windows.`32`.Kernel.Environment
-}
+    extension Windows.Kernel {
+        /// Windows environment-variable namespace — typealias to the
+        /// L2-canonical `Windows.\`32\`.Kernel.Environment`.
+        public typealias Environment = Windows.`32`.Kernel.Environment
+    }
 #endif

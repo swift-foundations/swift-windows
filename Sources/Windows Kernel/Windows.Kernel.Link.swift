@@ -17,9 +17,9 @@
 
 #if os(Windows)
 
-extension Windows.Kernel {
-    /// Windows hard/symbolic link namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Link`.
-    public typealias Link = Windows.`32`.Kernel.Link
-}
+    extension Windows.Kernel {
+        /// Windows hard/symbolic link namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Link`.
+        public typealias Link = Windows.`32`.Kernel.Link
+    }
 #endif

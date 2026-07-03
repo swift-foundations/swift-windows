@@ -30,17 +30,17 @@
 // not at L2.
 
 #if os(Windows)
-public import Windows_Kernel
-@_exported public import Windows_32_Kernel
+    public import Windows_Kernel
+    @_exported public import Windows_32_Kernel
 
-extension Windows.Kernel {
-    /// Windows thread namespace — typealias to the L2-canonical
-    /// `Windows.\`32\`.Kernel.Thread` per [PLAT-ARCH-005] revised.
-    ///
-    /// Nested types (`Affinity`, `Affinity.Kind`, `Affinity.Error`,
-    /// `Affinity.Failure`, `Affinity.Support`, `Index`, `ID`) resolve through
-    /// the typealias to their L2 canonical declarations.
-    public typealias Thread = Windows.`32`.Kernel.Thread
-}
+    extension Windows.Kernel {
+        /// Windows thread namespace — typealias to the L2-canonical
+        /// `Windows.\`32\`.Kernel.Thread` per [PLAT-ARCH-005] revised.
+        ///
+        /// Nested types (`Affinity`, `Affinity.Kind`, `Affinity.Error`,
+        /// `Affinity.Failure`, `Affinity.Support`, `Index`, `ID`) resolve through
+        /// the typealias to their L2 canonical declarations.
+        public typealias Thread = Windows.`32`.Kernel.Thread
+    }
 
 #endif
