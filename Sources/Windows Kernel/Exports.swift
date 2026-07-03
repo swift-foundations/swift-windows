@@ -13,7 +13,17 @@
 @_exported public import Windows_Kernel_Descriptor
 @_exported public import Random_Primitives
 
-/// Re-export Kernel namespace from primitives for use within Windows module.
+/// Cross-module `Kernel` spelling for this package: aliases the L3-policy
+/// `Windows.Kernel` enum (declared in the Descriptor target's
+/// Windows.Kernel.Namespace.swift), NOT a primitives namespace —
+/// swift-kernel-primitives no longer exists.
+///
+/// LOAD-BEARING: swift-kernel's `Kernel Core` and its dependent sub-targets
+/// (Thread / File / Completion) resolve bare `Kernel` on the Windows leg
+/// only through this alias, reached via their `@_exported public import
+/// Windows_Kernel`. Removing it breaks swift-kernel's Windows compile — do
+/// not delete without first relocating the alias into swift-kernel. This is
+/// the L3-policy → L3-unifier alias pattern (see [PLAT-ARCH-008k]).
 public typealias Kernel = Windows.Kernel
 
 /// Re-export Windows namespace (flows through Windows_32_Kernel via @_exported Core).
