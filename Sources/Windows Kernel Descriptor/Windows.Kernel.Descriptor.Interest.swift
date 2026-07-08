@@ -39,16 +39,18 @@
             public init(rawValue: UInt8) {
                 self.rawValue = rawValue
             }
-
-            /// Interest in read readiness (data available to read).
-            public static let read = Self(rawValue: 1 << 0)
-
-            /// Interest in write readiness (buffer space available for writing).
-            public static let write = Self(rawValue: 1 << 1)
-
-            /// Interest in priority/out-of-band data.
-            public static let priority = Self(rawValue: 1 << 2)
         }
+    }
+
+    extension Windows.Kernel.Descriptor.Interest {
+        /// Interest in read readiness (data available to read).
+        public static let read = Self(rawValue: 1 << 0)
+
+        /// Interest in write readiness (buffer space available for writing).
+        public static let write = Self(rawValue: 1 << 1)
+
+        /// Interest in priority/out-of-band data.
+        public static let priority = Self(rawValue: 1 << 2)
     }
 
     // MARK: - CustomStringConvertible
