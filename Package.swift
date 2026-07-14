@@ -46,7 +46,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-microsoft/swift-windows-standard.git", branch: "main"),
+        .package(url: "https://github.com/swift-microsoft/swift-windows-32.git", branch: "main"),
         // Item 3.5 (closed 2026-05-02): Glob vocabulary relocated from
         // swift-iso-9945 L2 to swift-glob-primitives L1, eliminating the
         // cross-platform asymmetry where swift-windows depended on a
@@ -72,7 +72,7 @@ let package = Package(
         .target(
             name: "Windows Kernel Descriptor",
             dependencies: [
-                .product(name: "Windows 32 Kernel", package: "swift-windows-standard"),
+                .product(name: "Windows 32 Kernel", package: "swift-windows-32"),
                 .product(name: "Error Primitives", package: "swift-error-primitives"),
                 .product(name: "Equation Primitives", package: "swift-equation-primitives"),
                 .product(name: "Hash Primitives", package: "swift-hash-primitives"),
@@ -82,8 +82,8 @@ let package = Package(
             name: "Windows Kernel",
             dependencies: [
                 "Windows Kernel Descriptor",
-                .product(name: "Windows 32 Kernel", package: "swift-windows-standard"),
-                .product(name: "Windows 32 Kernel File", package: "swift-windows-standard"),
+                .product(name: "Windows 32 Kernel", package: "swift-windows-32"),
+                .product(name: "Windows 32 Kernel File", package: "swift-windows-32"),
                 .product(name: "Glob Primitives", package: "swift-glob-primitives"),
                 .product(name: "Clock Primitives", package: "swift-clock-primitives"),
                 .product(name: "Error Primitives", package: "swift-error-primitives"),
@@ -103,7 +103,7 @@ let package = Package(
             dependencies: [
                 "Windows Kernel",
                 "Windows Kernel Descriptor",
-                .product(name: "Windows 32 Kernel Socket", package: "swift-windows-standard"),
+                .product(name: "Windows 32 Kernel Socket", package: "swift-windows-32"),
             ]
         ),
         // MARK: - Clock (L3-policy re-export per [PLAT-ARCH-008e])
@@ -115,7 +115,7 @@ let package = Package(
         .target(
             name: "Windows Kernel Clock",
             dependencies: [
-                .product(name: "Windows 32 Kernel Clock", package: "swift-windows-standard"),
+                .product(name: "Windows 32 Kernel Clock", package: "swift-windows-32"),
             ]
         ),
         // MARK: - File (L3-policy per [PLAT-ARCH-005] / [PLAT-ARCH-008e])
@@ -131,7 +131,7 @@ let package = Package(
             name: "Windows Kernel File",
             dependencies: [
                 "Windows Kernel",
-                .product(name: "Windows 32 Kernel File", package: "swift-windows-standard"),
+                .product(name: "Windows 32 Kernel File", package: "swift-windows-32"),
             ]
         ),
         // MARK: - Thread (L3-policy per [PLAT-ARCH-005] / [PLAT-ARCH-008e])
@@ -148,9 +148,9 @@ let package = Package(
             name: "Windows Kernel Thread",
             dependencies: [
                 "Windows Kernel",
-                .product(name: "Windows 32 Kernel", package: "swift-windows-standard"),
-                .product(name: "Windows 32 Kernel Thread", package: "swift-windows-standard"),
-                .product(name: "Windows 32 Kernel System", package: "swift-windows-standard"),
+                .product(name: "Windows 32 Kernel", package: "swift-windows-32"),
+                .product(name: "Windows 32 Kernel Thread", package: "swift-windows-32"),
+                .product(name: "Windows 32 Kernel System", package: "swift-windows-32"),
                 .product(name: "System Primitives", package: "swift-system-primitives"),
                 .product(name: "Error Primitives", package: "swift-error-primitives"),
             ]
@@ -175,7 +175,7 @@ let package = Package(
             name: "Windows Kernel Process",
             dependencies: [
                 "Windows Kernel",
-                .product(name: "Windows 32 Kernel Process", package: "swift-windows-standard"),
+                .product(name: "Windows 32 Kernel Process", package: "swift-windows-32"),
             ]
         ),
         .target(
