@@ -189,6 +189,8 @@ let package = Package(
             name: "Windows Kernel Tests",
             dependencies: [
                 "Windows Kernel",
+                // [MOD-038] The Glob suites name Glob.Pattern / .Options / .Error directly.
+                .product(name: "Glob Primitives", package: "swift-glob-primitives"),
             ]
         ),
     ],

@@ -14,6 +14,11 @@
     import WinSDK
     import Testing
 
+    // [MOD-038] `Glob` is declared in L1 Glob_Primitives. The implementation file
+    // reaches it via `public import`, which permits the type in that module's public
+    // API signatures but does NOT re-export it — clients must import it themselves.
+    import Glob_Primitives
+
     @testable import Windows_Kernel
 
     extension Glob {
