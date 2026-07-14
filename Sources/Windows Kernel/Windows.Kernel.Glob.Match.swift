@@ -41,9 +41,13 @@
             options: Options = .init(),
             body: (Swift.String) -> Void
         ) throws(Error) {
-            let root = Path(directory.span)
+            // Path.Char is UInt16 (UTF-16) on Windows — decode the code units.
+            // Reading this buffer as an 8-bit C string truncates "C:\…" at the
+            // first NUL high byte (notFound(path: "C")); that readout is a fossil
+            // of this file's UTF-8/CChar POSIX-named ancestor.
             let directoryString = unsafe Swift.String(
-                cString: UnsafeRawPointer(root.view.pointer).assumingMemoryBound(to: CChar.self)
+                decoding: UnsafeBufferPointer(start: directory.pointer, count: directory.count),
+                as: UTF16.self
             )
 
             if options.ordering == .deterministic {
