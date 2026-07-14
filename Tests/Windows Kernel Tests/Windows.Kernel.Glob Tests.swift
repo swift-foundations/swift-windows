@@ -108,121 +108,90 @@
         return components.joined(separator: "/")
     }
 
-    /// Creates a temporary directory for testing.
-    private func withTestDirectory(
-        _ body: (String) throws -> Void
-    ) throws {
-        // Get temp path
-        var tempPathBuffer = [WCHAR](repeating: 0, count: Int(MAX_PATH) + 1)
-        let tempPathLen = GetTempPathW(DWORD(tempPathBuffer.count), &tempPathBuffer)
-        guard tempPathLen > 0 else {
-            throw Glob.Error.io(path: "temp", category: .other)
-        }
-        let tempPath = stringFromWideChars(tempPathBuffer, maxLength: Int(tempPathLen))
+    // MARK: - Fixtures ([TEST-032]: statics on the suite namespace, never free functions)
 
-        // Create unique directory name using process ID and monotonic time
-        let pid = GetCurrentProcessId()
-        let ticks = GetTickCount64()
-        let testDir = tempPath + "glob-test-\(pid)-\(ticks)"
-        let winTestDir = testDir.replacing("/", with: "\\")
+    extension Glob.Test {
+        /// Runs `body` with a freshly created temporary directory, vending the
+        /// typed borrowed path — the shape `Glob.match` takes — alongside its
+        /// String form for building expectation paths. The directory tree is
+        /// removed afterwards. A path-conversion failure surfaces as itself
+        /// (`Path.String.Error`), never remapped.
+        static func withTemporaryDirectory(
+            _ body: (borrowing Path.Borrowed, _ string: Swift.String) throws -> Void
+        ) throws {
+            // Get temp path
+            var tempPathBuffer = [WCHAR](repeating: 0, count: Int(MAX_PATH) + 1)
+            let tempPathLen = GetTempPathW(DWORD(tempPathBuffer.count), &tempPathBuffer)
+            guard tempPathLen > 0 else {
+                throw Glob.Error.io(path: "temp", category: .other)
+            }
+            let tempPath = stringFromWideChars(tempPathBuffer, maxLength: Int(tempPathLen))
 
-        // Create directory
-        let created = withWideString(winTestDir) { wpath in
-            CreateDirectoryW(wpath, nil)
-        }
-        guard created else {
-            throw Glob.Error.io(path: testDir, category: .other)
-        }
+            // Create unique directory name using process ID and monotonic time
+            let pid = GetCurrentProcessId()
+            let ticks = GetTickCount64()
+            let testDir = tempPath + "glob-test-\(pid)-\(ticks)"
+            let winTestDir = testDir.replacing("/", with: "\\")
 
-        defer {
-            removeDirectoryRecursively(testDir)
-        }
-
-        // Use forward slashes for cross-platform API
-        let posixPath = testDir.replacing("\\", with: "/")
-        try body(posixPath)
-    }
-
-    /// Creates files and directories in the test directory.
-    private func createTestFiles(in directory: String) throws {
-        let files = [
-            "file1.txt",
-            "file2.txt",
-            "file3.md",
-            ".hidden.txt",
-            "src/main.swift",
-            "src/test.swift",
-            "src/util.swift",
-            "docs/readme.md",
-            "docs/guide.md",
-            ".config/settings.json",
-        ]
-
-        for file in files {
-            let fullPath = directory + "/" + file
-            let winPath = fullPath.replacing("/", with: "\\")
-            let dirPath = parentDirectory(of: fullPath).replacing("/", with: "\\")
-
-            // Create parent directory if needed
-            withWideString(dirPath) { wpath in
-                _ = CreateDirectoryW(wpath, nil)
+            // Create directory
+            let created = withWideString(winTestDir) { wpath in
+                CreateDirectoryW(wpath, nil)
+            }
+            guard created else {
+                throw Glob.Error.io(path: testDir, category: .other)
             }
 
-            // Create file
-            let handle = withWideString(winPath) { wpath in
-                CreateFileW(
-                    wpath,
-                    DWORD(GENERIC_WRITE),
-                    0,
-                    nil,
-                    DWORD(CREATE_NEW),
-                    DWORD(FILE_ATTRIBUTE_NORMAL),
-                    nil
-                )
+            defer {
+                removeDirectoryRecursively(testDir)
             }
-            if handle != INVALID_HANDLE_VALUE {
-                CloseHandle(handle)
+
+            // Use forward slashes for cross-platform API
+            let posixPath = testDir.replacing("\\", with: "/")
+            try Path.String.Scope()(posixPath) { (dir: borrowing Path.Borrowed) in
+                try body(dir, posixPath)
             }
         }
-    }
 
-    // MARK: - String→Path.Borrowed bridging
+        /// Creates files and directories in the test directory.
+        static func createTestFiles(in directory: Swift.String) throws {
+            let files = [
+                "file1.txt",
+                "file2.txt",
+                "file3.md",
+                ".hidden.txt",
+                "src/main.swift",
+                "src/test.swift",
+                "src/util.swift",
+                "docs/readme.md",
+                "docs/guide.md",
+                ".config/settings.json",
+            ]
 
-    // Glob.match takes `borrowing Path.Borrowed`; the tests hold Swift.String paths.
-    // These wrappers do the scoped conversion once and unwrap the scope's error
-    // wrapper so call sites — including `#expect(throws: Glob.Error.self)` — still
-    // observe Glob.Error.
-    private func glob(
-        _ pattern: Glob.Pattern,
-        in directory: Swift.String,
-        options: Glob.Options = .init()
-    ) throws(Glob.Error) -> [Swift.String] {
-        do throws(Path.String.Error<Glob.Error>) {
-            return try Path.String.Scope()(directory) { (view: borrowing Path.Borrowed) throws(Glob.Error) -> [Swift.String] in
-                try Glob.match(pattern: pattern, in: view, options: options)
-            }
-        } catch {
-            switch error {
-            case .body(let error): throw error
-            case .conversion: throw .io(path: directory, category: .other)
-            }
-        }
-    }
+            for file in files {
+                let fullPath = directory + "/" + file
+                let winPath = fullPath.replacing("/", with: "\\")
+                let dirPath = parentDirectory(of: fullPath).replacing("/", with: "\\")
 
-    private func glob(
-        include: [Glob.Pattern],
-        excluding: [Glob.Pattern] = [],
-        in directory: Swift.String,
-        options: Glob.Options = .init()
-    ) throws(Glob.Error) -> [Swift.String] {
-        do throws(Path.String.Error<Glob.Error>) {
-            return try Path.String.Scope()(directory) { (view: borrowing Path.Borrowed) throws(Glob.Error) -> [Swift.String] in
-                try Glob.match(include: include, excluding: excluding, in: view, options: options)
-            }
-        } catch {
-            switch error {
-            case .body(let error): throw error
-            case .conversion: throw .io(path: directory, category: .other)
+                // Create parent directory if needed
+                withWideString(dirPath) { wpath in
+                    _ = CreateDirectoryW(wpath, nil)
+                }
+
+                // Create file
+                let handle = withWideString(winPath) { wpath in
+                    CreateFileW(
+                        wpath,
+                        DWORD(GENERIC_WRITE),
+                        0,
+                        nil,
+                        DWORD(CREATE_NEW),
+                        DWORD(FILE_ATTRIBUTE_NORMAL),
+                        nil
+                    )
+                }
+                if handle != INVALID_HANDLE_VALUE {
+                    CloseHandle(handle)
+                }
             }
         }
     }
@@ -232,67 +201,67 @@
     extension Glob.Test.Unit {
         @Test
         func `Match simple wildcard pattern`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("*.txt")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count == 2)
-                #expect(results.contains(dir + "/file1.txt"))
-                #expect(results.contains(dir + "/file2.txt"))
+                #expect(results.contains(dirString + "/file1.txt"))
+                #expect(results.contains(dirString + "/file2.txt"))
             }
         }
 
         @Test
         func `Match question mark wildcard`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("file?.txt")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count == 2)
-                #expect(results.contains(dir + "/file1.txt"))
-                #expect(results.contains(dir + "/file2.txt"))
+                #expect(results.contains(dirString + "/file1.txt"))
+                #expect(results.contains(dirString + "/file2.txt"))
             }
         }
 
         @Test
         func `Match literal pattern`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("file1.txt")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count == 1)
-                #expect(results.contains(dir + "/file1.txt"))
+                #expect(results.contains(dirString + "/file1.txt"))
             }
         }
 
         @Test
         func `Match with path segments`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("src/*.swift")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count == 3)
-                #expect(results.contains(dir + "/src/main.swift"))
-                #expect(results.contains(dir + "/src/test.swift"))
-                #expect(results.contains(dir + "/src/util.swift"))
+                #expect(results.contains(dirString + "/src/main.swift"))
+                #expect(results.contains(dirString + "/src/test.swift"))
+                #expect(results.contains(dirString + "/src/util.swift"))
             }
         }
 
         @Test
         func `Match returns empty for no matches`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("*.xyz")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.isEmpty)
             }
@@ -304,31 +273,31 @@
     extension Glob.Test.Unit {
         @Test
         func `Match double star recursive`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("**/*.swift")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count == 3)
-                #expect(results.contains(dir + "/src/main.swift"))
-                #expect(results.contains(dir + "/src/test.swift"))
-                #expect(results.contains(dir + "/src/util.swift"))
+                #expect(results.contains(dirString + "/src/main.swift"))
+                #expect(results.contains(dirString + "/src/test.swift"))
+                #expect(results.contains(dirString + "/src/util.swift"))
             }
         }
 
         @Test
         func `Match double star finds all md files`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("**/*.md")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count == 3)
-                #expect(results.contains(dir + "/file3.md"))
-                #expect(results.contains(dir + "/docs/readme.md"))
-                #expect(results.contains(dir + "/docs/guide.md"))
+                #expect(results.contains(dirString + "/file3.md"))
+                #expect(results.contains(dirString + "/docs/readme.md"))
+                #expect(results.contains(dirString + "/docs/guide.md"))
             }
         }
     }
@@ -338,15 +307,15 @@
     extension Glob.Test.Unit {
         @Test
         func `Match character class`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("file[12].txt")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count == 2)
-                #expect(results.contains(dir + "/file1.txt"))
-                #expect(results.contains(dir + "/file2.txt"))
+                #expect(results.contains(dirString + "/file1.txt"))
+                #expect(results.contains(dirString + "/file2.txt"))
             }
         }
     }
@@ -356,40 +325,40 @@
     extension Glob.Test.Unit {
         @Test
         func `Dotfiles explicit policy excludes hidden files`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("*.txt")
                 let options = Glob.Options(dotfiles: .explicit)
-                let results = try glob(pattern, in: dir, options: options)
+                let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
                 #expect(results.count == 2)
-                #expect(!results.contains(dir + "/.hidden.txt"))
+                #expect(!results.contains(dirString + "/.hidden.txt"))
             }
         }
 
         @Test
         func `Dotfiles always policy includes hidden files`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("*.txt")
                 let options = Glob.Options(dotfiles: .always)
-                let results = try glob(pattern, in: dir, options: options)
+                let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
                 #expect(results.count == 3)
-                #expect(results.contains(dir + "/.hidden.txt"))
+                #expect(results.contains(dirString + "/.hidden.txt"))
             }
         }
 
         @Test
         func `Dotfiles never policy excludes hidden files`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern(".*")
                 let options = Glob.Options(dotfiles: .never)
-                let results = try glob(pattern, in: dir, options: options)
+                let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
                 #expect(results.isEmpty)
             }
@@ -397,26 +366,26 @@
 
         @Test
         func `Explicit dotfile pattern matches hidden files`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern(".*.txt")
                 let options = Glob.Options(dotfiles: .explicit)
-                let results = try glob(pattern, in: dir, options: options)
+                let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
                 #expect(results.count == 1)
-                #expect(results.contains(dir + "/.hidden.txt"))
+                #expect(results.contains(dirString + "/.hidden.txt"))
             }
         }
 
         @Test
         func `Deterministic ordering sorts results`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("*.txt")
                 let options = Glob.Options(ordering: .deterministic)
-                let results = try glob(pattern, in: dir, options: options)
+                let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
                 #expect(results == results.sorted())
             }
@@ -424,9 +393,9 @@
 
         @Test
         func `Case insensitive matching`() throws {
-            try withTestDirectory { dir in
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
                 // Create a file with uppercase
-                let upperPath = dir + "/FILE.TXT"
+                let upperPath = dirString + "/FILE.TXT"
                 let winPath = upperPath.replacing("/", with: "\\")
                 let handle = withWideString(winPath) { wpath in
                     CreateFileW(
@@ -445,7 +414,7 @@
 
                 let pattern = try Glob.Pattern("*.txt")
                 let options = Glob.Options(caseInsensitive: true)
-                let results = try glob(pattern, in: dir, options: options)
+                let results = try Glob.match(pattern: pattern, in: dir, options: options)
 
                 #expect(results.contains(upperPath))
             }
@@ -457,38 +426,38 @@
     extension Glob.Test.Unit {
         @Test
         func `Match with exclusion pattern`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let include = [try Glob.Pattern("*.txt")]
                 let exclude = [try Glob.Pattern("file1.txt")]
-                let results = try glob(
+                let results = try Glob.match(
                     include: include,
                     excluding: exclude,
                     in: dir
                 )
 
                 #expect(results.count == 1)
-                #expect(results.contains(dir + "/file2.txt"))
-                #expect(!results.contains(dir + "/file1.txt"))
+                #expect(results.contains(dirString + "/file2.txt"))
+                #expect(!results.contains(dirString + "/file1.txt"))
             }
         }
 
         @Test
         func `Match with multiple include patterns`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let include = [
                     try Glob.Pattern("*.txt"),
                     try Glob.Pattern("*.md"),
                 ]
-                let results = try glob(include: include, in: dir)
+                let results = try Glob.match(include: include, in: dir)
 
                 #expect(results.count == 3)
-                #expect(results.contains(dir + "/file1.txt"))
-                #expect(results.contains(dir + "/file2.txt"))
-                #expect(results.contains(dir + "/file3.md"))
+                #expect(results.contains(dirString + "/file1.txt"))
+                #expect(results.contains(dirString + "/file2.txt"))
+                #expect(results.contains(dirString + "/file3.md"))
             }
         }
     }
@@ -500,24 +469,28 @@
         func `Match non-existent directory throws notFound`() throws {
             let pattern = try Glob.Pattern("*.txt")
 
-            #expect(throws: Glob.Error.self) {
-                _ = try glob(
-                    pattern,
-                    in: "C:/nonexistent/path/that/does/not/exist"
-                )
+            try Path.String.Scope()("C:/nonexistent/path/that/does/not/exist") { (dir: borrowing Path.Borrowed) in
+                do {
+                    _ = try Glob.match(pattern: pattern, in: dir)
+                    Issue.record("expected Glob.match to throw Glob.Error")
+                } catch {
+                    // typed throws: `error` here is statically Glob.Error — reaching
+                    // this catch IS the pass condition.
+                    _ = error
+                }
             }
         }
 
         @Test
         func `Match with skip error policy continues on error`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("**/*.txt")
                 let options = Glob.Options(onError: .skip)
 
                 // Should not throw, gracefully handles any errors
-                let results = try glob(pattern, in: dir, options: options)
+                let results = try Glob.match(pattern: pattern, in: dir, options: options)
                 #expect(results.count >= 2)
             }
         }
@@ -528,9 +501,9 @@
     extension Glob.Test.EdgeCase {
         @Test
         func `Match empty pattern`() throws {
-            try withTestDirectory { dir in
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
                 let pattern = try Glob.Pattern("")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count == 1)
             }
@@ -538,11 +511,11 @@
 
         @Test
         func `Match pattern with only star`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("*")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 #expect(results.count >= 4)
             }
@@ -554,11 +527,11 @@
     extension Glob.Test.Unit {
         @Test
         func `Path normalization outputs forward slashes`() throws {
-            try withTestDirectory { dir in
-                try createTestFiles(in: dir)
+            try Glob.Test.withTemporaryDirectory { dir, dirString in
+                try Glob.Test.createTestFiles(in: dirString)
 
                 let pattern = try Glob.Pattern("*.txt")
-                let results = try glob(pattern, in: dir)
+                let results = try Glob.match(pattern: pattern, in: dir)
 
                 // All paths should use forward slashes
                 for path in results {
