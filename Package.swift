@@ -191,6 +191,8 @@ let package = Package(
                 "Windows Kernel",
                 // [MOD-038] The Glob suites name Glob.Pattern / .Options / .Error directly.
                 .product(name: "Glob Primitives", package: "swift-glob-primitives"),
+                // [MOD-038] The suites bridge Swift.String → Path.Borrowed for Glob.match.
+                .product(name: "Path Primitives", package: "swift-path-primitives"),
             ]
         ),
     ],

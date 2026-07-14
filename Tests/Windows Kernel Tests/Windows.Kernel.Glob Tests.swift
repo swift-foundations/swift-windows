@@ -19,6 +19,10 @@
     // API signatures but does NOT re-export it — clients must import it themselves.
     import Glob_Primitives
 
+    // [MOD-038] Same SE-0409 shape: Glob.match takes `borrowing Path.Borrowed`
+    // (L1 Path_Primitives), which Windows_Kernel public-imports without re-export.
+    import Path_Primitives
+
     @testable import Windows_Kernel
 
     extension Glob {
@@ -182,6 +186,47 @@
         }
     }
 
+    // MARK: - String→Path.Borrowed bridging
+
+    // Glob.match takes `borrowing Path.Borrowed`; the tests hold Swift.String paths.
+    // These wrappers do the scoped conversion once and unwrap the scope's error
+    // wrapper so call sites — including `#expect(throws: Glob.Error.self)` — still
+    // observe Glob.Error.
+    private func glob(
+        _ pattern: Glob.Pattern,
+        in directory: Swift.String,
+        options: Glob.Options = .init()
+    ) throws(Glob.Error) -> [Swift.String] {
+        do throws(Path.String.Error<Glob.Error>) {
+            return try Path.String.Scope()(directory) { (view: borrowing Path.Borrowed) throws(Glob.Error) -> [Swift.String] in
+                try Glob.match(pattern: pattern, in: view, options: options)
+            }
+        } catch {
+            switch error {
+            case .body(let error): throw error
+            case .conversion: throw .io(path: directory, category: .other)
+            }
+        }
+    }
+
+    private func glob(
+        include: [Glob.Pattern],
+        excluding: [Glob.Pattern] = [],
+        in directory: Swift.String,
+        options: Glob.Options = .init()
+    ) throws(Glob.Error) -> [Swift.String] {
+        do throws(Path.String.Error<Glob.Error>) {
+            return try Path.String.Scope()(directory) { (view: borrowing Path.Borrowed) throws(Glob.Error) -> [Swift.String] in
+                try Glob.match(include: include, excluding: excluding, in: view, options: options)
+            }
+        } catch {
+            switch error {
+            case .body(let error): throw error
+            case .conversion: throw .io(path: directory, category: .other)
+            }
+        }
+    }
+
     // MARK: - Basic Match Tests
 
     extension Glob.Test.Unit {
@@ -191,7 +236,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("*.txt")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count == 2)
                 #expect(results.contains(dir + "/file1.txt"))
@@ -205,7 +250,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("file?.txt")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count == 2)
                 #expect(results.contains(dir + "/file1.txt"))
@@ -219,7 +264,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("file1.txt")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count == 1)
                 #expect(results.contains(dir + "/file1.txt"))
@@ -232,7 +277,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("src/*.swift")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count == 3)
                 #expect(results.contains(dir + "/src/main.swift"))
@@ -247,7 +292,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("*.xyz")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.isEmpty)
             }
@@ -263,7 +308,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("**/*.swift")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count == 3)
                 #expect(results.contains(dir + "/src/main.swift"))
@@ -278,7 +323,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("**/*.md")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count == 3)
                 #expect(results.contains(dir + "/file3.md"))
@@ -297,7 +342,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("file[12].txt")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count == 2)
                 #expect(results.contains(dir + "/file1.txt"))
@@ -316,7 +361,7 @@
 
                 let pattern = try Glob.Pattern("*.txt")
                 let options = Glob.Options(dotfiles: .explicit)
-                let results = try Glob.match(pattern: pattern, in: dir, options: options)
+                let results = try glob(pattern, in: dir, options: options)
 
                 #expect(results.count == 2)
                 #expect(!results.contains(dir + "/.hidden.txt"))
@@ -330,7 +375,7 @@
 
                 let pattern = try Glob.Pattern("*.txt")
                 let options = Glob.Options(dotfiles: .always)
-                let results = try Glob.match(pattern: pattern, in: dir, options: options)
+                let results = try glob(pattern, in: dir, options: options)
 
                 #expect(results.count == 3)
                 #expect(results.contains(dir + "/.hidden.txt"))
@@ -344,7 +389,7 @@
 
                 let pattern = try Glob.Pattern(".*")
                 let options = Glob.Options(dotfiles: .never)
-                let results = try Glob.match(pattern: pattern, in: dir, options: options)
+                let results = try glob(pattern, in: dir, options: options)
 
                 #expect(results.isEmpty)
             }
@@ -357,7 +402,7 @@
 
                 let pattern = try Glob.Pattern(".*.txt")
                 let options = Glob.Options(dotfiles: .explicit)
-                let results = try Glob.match(pattern: pattern, in: dir, options: options)
+                let results = try glob(pattern, in: dir, options: options)
 
                 #expect(results.count == 1)
                 #expect(results.contains(dir + "/.hidden.txt"))
@@ -371,7 +416,7 @@
 
                 let pattern = try Glob.Pattern("*.txt")
                 let options = Glob.Options(ordering: .deterministic)
-                let results = try Glob.match(pattern: pattern, in: dir, options: options)
+                let results = try glob(pattern, in: dir, options: options)
 
                 #expect(results == results.sorted())
             }
@@ -400,7 +445,7 @@
 
                 let pattern = try Glob.Pattern("*.txt")
                 let options = Glob.Options(caseInsensitive: true)
-                let results = try Glob.match(pattern: pattern, in: dir, options: options)
+                let results = try glob(pattern, in: dir, options: options)
 
                 #expect(results.contains(upperPath))
             }
@@ -417,7 +462,7 @@
 
                 let include = [try Glob.Pattern("*.txt")]
                 let exclude = [try Glob.Pattern("file1.txt")]
-                let results = try Glob.match(
+                let results = try glob(
                     include: include,
                     excluding: exclude,
                     in: dir
@@ -438,7 +483,7 @@
                     try Glob.Pattern("*.txt"),
                     try Glob.Pattern("*.md"),
                 ]
-                let results = try Glob.match(include: include, in: dir)
+                let results = try glob(include: include, in: dir)
 
                 #expect(results.count == 3)
                 #expect(results.contains(dir + "/file1.txt"))
@@ -456,8 +501,8 @@
             let pattern = try Glob.Pattern("*.txt")
 
             #expect(throws: Glob.Error.self) {
-                _ = try Glob.match(
-                    pattern: pattern,
+                _ = try glob(
+                    pattern,
                     in: "C:/nonexistent/path/that/does/not/exist"
                 )
             }
@@ -472,7 +517,7 @@
                 let options = Glob.Options(onError: .skip)
 
                 // Should not throw, gracefully handles any errors
-                let results = try Glob.match(pattern: pattern, in: dir, options: options)
+                let results = try glob(pattern, in: dir, options: options)
                 #expect(results.count >= 2)
             }
         }
@@ -485,7 +530,7 @@
         func `Match empty pattern`() throws {
             try withTestDirectory { dir in
                 let pattern = try Glob.Pattern("")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count == 1)
             }
@@ -497,7 +542,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("*")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 #expect(results.count >= 4)
             }
@@ -513,7 +558,7 @@
                 try createTestFiles(in: dir)
 
                 let pattern = try Glob.Pattern("*.txt")
-                let results = try Glob.match(pattern: pattern, in: dir)
+                let results = try glob(pattern, in: dir)
 
                 // All paths should use forward slashes
                 for path in results {
