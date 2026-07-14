@@ -127,10 +127,15 @@
             }
             let tempPath = stringFromWideChars(tempPathBuffer, maxLength: Int(tempPathLen))
 
-            // Create unique directory name using process ID and monotonic time
+            // Create unique directory name. pid+ticks alone is NOT unique: Swift
+            // Testing runs suites in parallel and GetTickCount64's ~15ms resolution
+            // made concurrent tests collide on the same name (every traversal test
+            // failed on CreateDirectoryW at da2e791's Windows leg, all reporting the
+            // SAME directory). A random component makes each invocation distinct.
             let pid = GetCurrentProcessId()
             let ticks = GetTickCount64()
-            let testDir = tempPath + "glob-test-\(pid)-\(ticks)"
+            let unique = UInt64.random(in: .min ... .max)
+            let testDir = tempPath + "glob-test-\(pid)-\(ticks)-\(unique)"
             let winTestDir = testDir.replacing("/", with: "\\")
 
             // Create directory
