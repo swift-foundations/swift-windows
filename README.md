@@ -95,6 +95,34 @@ This package provides Windows-specific IOCP APIs. For cross-platform kernel prim
 
 ---
 
+## Error Handling
+
+Each Windows kernel operation throws its own typed `Error` rather than a single
+shared envelope — descriptor close, random, glob matching, thread affinity, and
+I/O completion each expose a case set matched to that syscall. Closing a
+descriptor is representative:
+
+```
+Windows.Kernel.Close.Error
+├── .handle(Windows.32.Kernel.Descriptor.Validity.Error)  // invalid handle
+├── .io(Windows.32.Kernel.IO.Error)                       // underlying I/O failure
+└── .platform(Error_Primitives.Error)                     // raw platform error
+```
+
+```swift
+do {
+    try Windows.Kernel.Close.close(descriptor)
+} catch .handle(let error) {
+    _ = error
+} catch .io(let error) {
+    _ = error
+} catch .platform(let error) {
+    _ = error
+}
+```
+
+---
+
 ## Related Packages
 
 ### Dependencies
