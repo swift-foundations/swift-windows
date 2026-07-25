@@ -1,0 +1,11 @@
+version: 1
+builder:
+  configs:
+  - documentation_targets:
+    - Windows Kernel
+    - Windows Kernel Descriptor
+    - Windows Kernel Socket
+    - Windows Kernel Clock
+    - Windows Kernel File
+    - Windows Kernel Thread
+    - Windows Kernel Process
