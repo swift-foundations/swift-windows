@@ -503,7 +503,7 @@
 
     // MARK: - Edge Cases
 
-    extension Glob.Test.EdgeCase {
+    extension Glob.Test.`Edge Case` {
         @Test
         func `Match empty pattern`() throws {
             try Glob.Test.withTemporaryDirectory { dir, _ in
