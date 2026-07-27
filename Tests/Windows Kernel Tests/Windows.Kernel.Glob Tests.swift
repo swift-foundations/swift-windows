@@ -506,7 +506,7 @@
     extension Glob.Test.EdgeCase {
         @Test
         func `Match empty pattern`() throws {
-            try Glob.Test.withTemporaryDirectory { dir, dirString in
+            try Glob.Test.withTemporaryDirectory { dir, _ in
                 let pattern = try Glob.Pattern("")
                 let results = try Glob.match(pattern: pattern, in: dir)
 
