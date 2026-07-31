@@ -136,10 +136,14 @@ let package = Package(
         ),
         // MARK: - Thread (L3-policy per [PLAT-ARCH-005] / [PLAT-ARCH-008e])
         //
-        // Tier 5-Windows-FOS+Affinity-Combined Phase 3 target (2026-05-02). Hosts
-        // the L3-policy `Windows.Kernel.Thread` typealias to L2-canonical
-        // `Windows.\`32\`.Kernel.Thread`, plus the `Affinity.apply(_:)` dispatch
-        // method recreated from the Wave 1.9 deletion (commit `afd758d`). Per
+        // D1 unification (swift-foundations/swift-windows#2, 2026-07-31): hosts
+        // the L3-policy `Windows.Kernel.Thread` distinct empty enum plus its
+        // per-member typealiases to L2-canonical `Windows.\`32\`.Kernel.Thread`.
+        // The `Affinity.apply(_:)` dispatch method is superseded per D2 — kernel
+        // performs the affinity-kind switch and calls
+        // `Windows.\`32\`.Kernel.Thread.Affinity.setMask(cores:)` directly, so
+        // the `System Primitives` / `Error Primitives` / `Windows 32 Kernel
+        // System` dependencies that method alone required are removed. Per
         // principal Q2 disposition, declared as a per-domain target (NOT
         // flat-umbrella merged into Windows Kernel) to keep the three-tier chain
         // L3-unifier (swift-kernel) → L3-policy (swift-windows) → L2 (swift-windows-32)
@@ -150,9 +154,6 @@ let package = Package(
                 "Windows Kernel",
                 .product(name: "Windows 32 Kernel", package: "swift-windows-32"),
                 .product(name: "Windows 32 Kernel Thread", package: "swift-windows-32"),
-                .product(name: "Windows 32 Kernel System", package: "swift-windows-32"),
-                .product(name: "System Primitives", package: "swift-system-primitives"),
-                .product(name: "Error Primitives", package: "swift-error-primitives"),
             ]
         ),
         // MARK: - Process (L3-policy per [PLAT-ARCH-005] / [PLAT-ARCH-008e])
