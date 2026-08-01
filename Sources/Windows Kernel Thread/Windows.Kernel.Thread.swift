@@ -57,6 +57,12 @@
 
         /// Thread identifier — typealias to canonical L2 home.
         public typealias ID = Windows.`32`.Kernel.Thread.ID
+
+        /// Thread mutex — typealias to canonical L2 home.
+        public typealias Mutex = Windows.`32`.Kernel.Thread.Mutex
+
+        /// Thread condition variable — typealias to canonical L2 home.
+        public typealias Condition = Windows.`32`.Kernel.Thread.Condition
     }
 
 #endif
