@@ -46,6 +46,9 @@
         /// File attributes — typealias to canonical L2 home.
         public typealias Attributes = Windows.`32`.Kernel.File.Attributes
 
+        /// File ownership — typealias to canonical L2 home.
+        public typealias Chown = Windows.`32`.Kernel.File.Chown
+
         /// File deletion — typealias to canonical L2 home.
         public typealias Delete = Windows.`32`.Kernel.File.Delete
 
@@ -54,6 +57,9 @@
 
         /// File handle — typealias to canonical L2 home.
         public typealias Handle = Windows.`32`.Kernel.File.Handle
+
+        /// File move — typealias to canonical L2 home.
+        public typealias Move = Windows.`32`.Kernel.File.Move
 
         /// File offset — typealias to canonical L2 home.
         public typealias Offset = Windows.`32`.Kernel.File.Offset
