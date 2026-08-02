@@ -70,6 +70,9 @@
         /// File permissions — typealias to canonical L2 home.
         public typealias Permissions = Windows.`32`.Kernel.File.Permissions
 
+        /// File position seeking — typealias to canonical L2 home.
+        public typealias Seek = Windows.`32`.Kernel.File.Seek
+
         /// File size — typealias to canonical L2 home.
         public typealias Size = Windows.`32`.Kernel.File.Size
 

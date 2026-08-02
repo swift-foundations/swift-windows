@@ -187,6 +187,13 @@ let package = Package(
             path: "Tests/Support"
         ),
         .testTarget(
+            name: "Windows Kernel File Tests",
+            dependencies: [
+                "Windows Kernel File",
+                .product(name: "Windows 32 Kernel File", package: "swift-windows-32"),
+            ]
+        ),
+        .testTarget(
             name: "Windows Kernel Tests",
             dependencies: [
                 "Windows Kernel",
