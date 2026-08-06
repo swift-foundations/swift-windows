@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - '*'
   pull_request:
     branches:
       - main
@@ -21,7 +19,9 @@ concurrency:
 
 jobs:
   ci:
-    uses: swift-foundations/.github/.github/workflows/swift-ci.yml@main
+    if: ${{ !github.event.repository.private }}
+    name: ci / matrix
+    uses: swift-institute/.github/.github/workflows/swift-ci.yml@main
     with:
+      lint-bundle: institute
       platform-support: windows
-    secrets: inherit
