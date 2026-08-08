@@ -148,11 +148,12 @@ let package = Package(
         .target(
             name: "Windows Kernel Lock",
             dependencies: [
-                // "Windows 32 Kernel Lock" (the RAII Token) is intentionally
-                // absent: it does not compile off-Windows on swift-windows-32
-                // `main`. Every other lock member is canonical in
-                // "Windows 32 Kernel Core", reached via "Windows Kernel".
                 "Windows Kernel",
+                // The RAII `Token` lives in its own L2 target. It builds on the
+                // full matrix as of swift-windows-32 `main` (the
+                // `Clock.Continuous` access is inside the `os(Windows)` guard),
+                // so the policy tier aliases it like every other lock member.
+                .product(name: "Windows 32 Kernel Lock", package: "swift-windows-32"),
             ]
         ),
         // MARK: - Thread (L3-policy per [PLAT-ARCH-005] / [PLAT-ARCH-008e])

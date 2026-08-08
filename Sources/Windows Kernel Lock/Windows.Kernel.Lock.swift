@@ -23,12 +23,15 @@
 // | L3-policy swift-windows | `Windows.Kernel.Lock` (distinct empty enum) | Per-member typealiases plus throwing wrappers; policy refinements land here |
 // | L3-unifier swift-kernel | `Kernel.Lock = Windows.Kernel.Lock` (on Windows) | The one converged byte-range locking name portable code consumes |
 //
-// `Token` (the `~Copyable` RAII handle) is deliberately not aliased here yet.
-// It is the sole content of the L2 "Windows 32 Kernel Lock" target, which does
-// not compile off-Windows on swift-windows-32's `main`
-// (`Clock.Continuous.now` is unavailable there); every other lock member is
-// already canonical in "Windows 32 Kernel Core". Alias it once that target
-// builds on the full matrix.
+// `Token` (the `~Copyable` RAII handle) is aliased here alongside every other
+// lock member. It is the sole content of the L2 "Windows 32 Kernel Lock"
+// target, which now builds on the full matrix: its `Clock.Continuous` access
+// sits inside the `os(Windows)` guard on swift-windows-32 `main`.
+//
+// `Scope` is deliberately absent: it has no Win32 counterpart. A converged
+// surface that resolves on one platform and not the other is not converged, so
+// `Scope` must not be exposed through the converged `Kernel.Lock` on either
+// platform while it remains one-sided.
 //
 // This target exists because portable code that needs a machine-wide file lock
 // previously had no converged owner to consume: swift-posix's "POSIX Kernel
@@ -38,6 +41,7 @@
 // missing.
 
 #if os(Windows)
+    public import Windows_32_Kernel_Lock
     public import Windows_Kernel
 
     extension Windows.Kernel {
@@ -59,6 +63,9 @@
 
         /// Lock acquisition mode.
         public typealias Acquire = Windows.`32`.Kernel.Lock.Acquire
+
+        /// RAII handle owning an acquired lock.
+        public typealias Token = Windows.`32`.Kernel.Lock.Token
 
         /// Non-blocking lock operations.
         public enum Immediate: Sendable {}
