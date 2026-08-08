@@ -33,6 +33,10 @@ let package = Package(
             targets: ["Windows Kernel File"]
         ),
         .library(
+            name: "Windows Kernel Lock",
+            targets: ["Windows Kernel Lock"]
+        ),
+        .library(
             name: "Windows Kernel Thread",
             targets: ["Windows Kernel Thread"]
         ),
@@ -132,6 +136,23 @@ let package = Package(
             dependencies: [
                 "Windows Kernel",
                 .product(name: "Windows 32 Kernel File", package: "swift-windows-32"),
+            ]
+        ),
+        // MARK: - Lock (L3-policy per [PLAT-ARCH-005] / [PLAT-ARCH-008e])
+        //
+        // The Windows half of the converged `Kernel.Lock` byte-range locking
+        // surface. Mirrors swift-posix's "POSIX Kernel Lock" so that
+        // swift-kernel's L3-unifier can export one lock API on every
+        // platform, and portable callers never reach a host substrate
+        // directly.
+        .target(
+            name: "Windows Kernel Lock",
+            dependencies: [
+                // "Windows 32 Kernel Lock" (the RAII Token) is intentionally
+                // absent: it does not compile off-Windows on swift-windows-32
+                // `main`. Every other lock member is canonical in
+                // "Windows 32 Kernel Core", reached via "Windows Kernel".
+                "Windows Kernel",
             ]
         ),
         // MARK: - Thread (L3-policy per [PLAT-ARCH-005] / [PLAT-ARCH-008e])
